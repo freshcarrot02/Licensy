@@ -5,7 +5,7 @@ import texttable
 import discord.utils
 from dateutil import parser
 from aiosqlite import IntegrityError
-from discord.errors import Forbidden
+from discord.errors import Forbidden, NotFound
 from discord.ext import commands, tasks
 
 from helpers import misc
@@ -21,7 +21,12 @@ logger = logging.getLogger(__name__)
 class LicenseHandler(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def cog_load(self):
         self.license_check.start()
+
+    async def cog_unload(self):
+        self.license_check.cancel()
 
     @tasks.loop(seconds=60.0)
     async def license_check(self):
@@ -113,18 +118,21 @@ class LicenseHandler(commands.Cog):
         # why this sometimes acts as if the member is not in the guild? Thus right now if it's None we will
         # force a API call
         if member is None:
-            member = await guild.fetch_member(member_id)
+            try:
+                member = await guild.fetch_member(member_id)
+            except NotFound:
+                member = None
 
         # If member is still None in this case then either he indeed has left the guild
         # or the bug has not been fixed.
         if member is None:
             logger.warning(f"Can't remove licensed role {licensed_role_id} from member {member_id} "
-                           f"because he has left the guild {licensed_role_id} ({guild.name}).")
+                           f"because he has left the guild {guild_id} ({guild.name}).")
             return
 
         member_role = discord.utils.get(member.roles, id=licensed_role_id)
         if member_role is None:
-            raise RoleNotFound(f"Can't remove licensed role {member_role} for {member.mention}."
+            raise RoleNotFound(f"Can't remove licensed role {licensed_role_id} for {member.mention}."
                                f"Role not found ")
         else:
             await member.remove_roles(member_role)
@@ -252,7 +260,7 @@ class LicenseHandler(commands.Cog):
         license_guild_id, license_role_id = license_data
         await self.activate_license(ctx, license, license_guild_id, license_role_id, ctx.author)
 
-    @commands.command(allieses=["add_license"])
+    @commands.command()
     @commands.has_permissions(manage_roles=True)
     async def add_license(self, ctx, license, member: discord.Member):
         """Manually add license to member."""
@@ -520,7 +528,7 @@ class LicenseHandler(commands.Cog):
         await ctx.send(embed=success("Sent to DM!", ctx.me), delete_after=5)
         await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=dm_title)
 
-    @commands.command(alliases=["random_licenses"])
+    @commands.command(aliases=["random_licenses"])
     @commands.cooldown(1, 10, commands.BucketType.guild)
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
@@ -657,5 +665,5 @@ class LicenseHandler(commands.Cog):
         await ctx.send(embed=failure(msg))
 
 
-def setup(bot):
-    bot.add_cog(LicenseHandler(bot))
+async def setup(bot):
+    await bot.add_cog(LicenseHandler(bot))

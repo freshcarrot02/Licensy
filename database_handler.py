@@ -34,10 +34,10 @@ class DatabaseHandler:
         self.db_name = None
         self.connection = None
 
-    async def _get_connection(self) -> aiosqlite.core.Connection:
+    async def _get_connection(self) -> aiosqlite.Connection:
         """
         Returns a connection to the db, if db doesn't exist create new
-        :return: aiosqlite.core.Connection
+        :return: aiosqlite.Connection
         """
         path = DatabaseHandler._construct_path(self.db_name)
         if Path(path).is_file():
@@ -53,10 +53,10 @@ class DatabaseHandler:
         return DatabaseHandler.DB_PATH + db_name + DatabaseHandler.DB_EXTENSION
 
     @staticmethod
-    async def _create_database(path: str) -> aiosqlite.core.Connection:
+    async def _create_database(path: str) -> aiosqlite.Connection:
         """
         :param path: path where database will be created, including file name and extension
-        :return: aiosqlite.core.Connection
+        :return: aiosqlite.Connection
         """
         conn = await aiosqlite.connect(path)
         await conn.execute("CREATE TABLE GUILDS "
@@ -186,8 +186,13 @@ class DatabaseHandler:
 
     async def add_new_licensed_member(self, member_id: int, guild_id: int,
                                       expiration_date: datetime, licensed_role_id: int):
+        expiration_str = (
+            expiration_date.strftime("%Y-%m-%d %H:%M:%S.%f")
+            if isinstance(expiration_date, datetime)
+            else str(expiration_date)
+        )
         query = "INSERT INTO LICENSED_MEMBERS(MEMBER_ID, GUILD_ID, EXPIRATION_DATE, LICENSED_ROLE_ID) VALUES(?,?,?,?)"
-        await self.update_database(query, member_id, guild_id, expiration_date, licensed_role_id)
+        await self.update_database(query, member_id, guild_id, expiration_str, licensed_role_id)
 
     async def delete_licensed_member(self, member_id: int, licensed_role_id: int):
         """

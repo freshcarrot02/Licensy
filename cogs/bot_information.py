@@ -1,3 +1,4 @@
+import asyncio
 import os
 import time
 import psutil
@@ -18,13 +19,21 @@ class BotInformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.developers = []
-        # Fetch developers only once, at start
-        self.bot.loop.create_task(self._set_developers())
+        self._developers_task = None
         self.process = psutil.Process(os.getpid())
         self.activity = 0
-        self.activity_loop.start()
         self.github_source = "https://github.com/albertopoljak/Licensy"
         self.top_gg_vote_link = "https://discordbots.org/bot/604057722878689324"
+
+    async def cog_load(self):
+        # Fetch developers only once, at start
+        self._developers_task = asyncio.create_task(self._set_developers())
+        self.activity_loop.start()
+
+    async def cog_unload(self):
+        self.activity_loop.cancel()
+        if self._developers_task is not None and not self._developers_task.done():
+            self._developers_task.cancel()
 
     @tasks.loop(seconds=300.0)
     async def activity_loop(self):
@@ -133,7 +142,7 @@ class BotInformation(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx):
         """Show bot information (stats/links/etc)."""
-        avg_members = round(len(self.bot.users) / len(self.bot.guilds))
+        avg_members = round(len(self.bot.users) / len(self.bot.guilds)) if self.bot.guilds else 0
         avg_members_string = f"{avg_members} users/server"
 
         active_licenses = await self.bot.main_db.get_licensed_roles_total_count()
@@ -208,8 +217,11 @@ class BotInformation(commands.Cog):
         developer_ids = self.bot.config["developers"].values()
         developers = []
         for value_id in developer_ids:
-            developer = await self.bot.fetch_user(value_id)
-            developers.append(developer.mention)
+            try:
+                developer = await self.bot.fetch_user(value_id)
+                developers.append(developer.mention)
+            except discord.HTTPException as err:
+                logger.warning(f"Failed to fetch developer {value_id}: {err}")
         if not developers:
             logger.critical(f"Developers ({developer_ids}) could not be found on discord!")
             self.developers = ["Unknown"]
@@ -221,5 +233,5 @@ class BotInformation(commands.Cog):
         return time_ago(get_current_time() - self.bot.up_time_start_time)
 
 
-def setup(bot):
-    bot.add_cog(BotInformation(bot))
+async def setup(bot):
+    await bot.add_cog(BotInformation(bot))

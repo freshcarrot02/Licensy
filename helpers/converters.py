@@ -55,7 +55,7 @@ def time_string_to_hours(str_input: str) -> int:
             raise commands.BadArgument("Invalid time provided.")
 
         time_data = {k: int(v) for k, v in match.groupdict(default=0).items()}
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
         td = (relativedelta(**time_data) + now) - now
         hours += td.days * 24 + td.seconds // 3600
     return hours

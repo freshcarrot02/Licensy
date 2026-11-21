@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 from discord import Embed, Colour, Member, User
 
@@ -10,7 +10,7 @@ def simple_embed(message: str, title: str, color: Colour) -> Embed:
     return embed
 
 
-def info(message: str, member: Union[Member, User, None], title: str = Embed.Empty) -> Embed:
+def info(message: str, member: Union[Member, User, None], title: Optional[str] = None) -> Embed:
     """
     Constructs info embed with custom title and description.
     Color depends on passed member top role color.

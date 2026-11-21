@@ -1,5 +1,6 @@
 import logging
 
+# Note: dblpy is outdated. Consider updating to topgg.py or similar modern library
 import dbl
 from discord.ext import commands, tasks
 
@@ -13,7 +14,12 @@ class TopGGApi(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dbl_client = dbl.DBLClient(self.bot, self.bot.config["top_gg_api_key"])
+
+    async def cog_load(self):
         self.update_stats_loop.start()
+
+    async def cog_unload(self):
+        self.update_stats_loop.cancel()
 
     @tasks.loop(hours=12.0)
     async def update_stats_loop(self):
@@ -31,5 +37,5 @@ class TopGGApi(commands.Cog):
         logger.info("Update stats loop started!")
 
 
-def setup(bot):
-    bot.add_cog(TopGGApi(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(TopGGApi(bot))

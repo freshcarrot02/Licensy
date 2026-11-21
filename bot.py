@@ -27,8 +27,7 @@ startup_extensions = [
     "bot_information",
     "help",
     "cmd_errors",
-    # Removed because a lot of users are asking about the token when they don't even need this cog.
-    # If you need it then re-enable it.
+    # Disabled because dblpy is unmaintained and incompatible with discord.py 2.x.
     # "top_gg_api",
 ]
 
@@ -36,32 +35,36 @@ startup_extensions = [
 class Bot(commands.Bot):
     def __init__(self, **kwargs):
         self.config = ConfigHandler("config")
-        self.main_db = asyncio.get_event_loop().run_until_complete(DatabaseHandler.create_instance())
+        self.main_db = None  # Will be initialized in setup_hook
         self.up_time_start_time = get_current_time()
+        
+        # Updated intents for discord.py 2.x
+        intents = discord.Intents.default()
+        intents.message_content = True  # Required for message content access in 2.x
+        intents.members = True
+        
         super(Bot, self).__init__(
             command_prefix=self.prefix_callable,
             help_command=None,
             description=self.config["bot_description"],
             case_insensitive=True,
-            intents=discord.Intents(guilds=True, members=True, messages=True, reactions=True),
+            intents=intents,
             **kwargs
         )
 
     async def prefix_callable(self, bot_client, message):
+        default_prefix = self.config["default_prefix"]
+        if message.guild is None or bot_client.main_db is None:
+            return default_prefix
         try:
             # TODO: Store this in list or something so we don't waste calls to db for each message
             return await bot_client.main_db.get_guild_prefix(message.guild.id)
         except Exception as err:
             """
             If fetching prefix from database errors just use the default prefix.
-            This is also used in DMs where the guild is None
             """
-            default_prefix = self.config["default_prefix"]
-            if message.guild is not None:
-                # Don't spam the log if it's DMs
-                # We only want to log it in case guild prefix is missing
-                root_logger.error(f"Can't get guild {message.guild} prefix. Error:{err}. "
-                                  f"Using '{default_prefix}' as prefix.")
+            root_logger.error(f"Can't get guild {message.guild} prefix. Error:{err}. "
+                              f"Using '{default_prefix}' as prefix.")
             return default_prefix
 
     async def on_ready(self):
@@ -71,16 +74,13 @@ class Bot(commands.Bot):
         )
         root_logger.info("Successfully logged in and booted...!")
 
-    @staticmethod
-    async def on_connect():
+    async def on_connect(self):  # Removed @staticmethod
         root_logger.info("Connection to Discord established")
 
-    @staticmethod
-    async def on_guild_remove(guild):
+    async def on_guild_remove(self, guild):  # Removed @staticmethod
         root_logger.info(f"Left guild {guild.name}")
 
-    @staticmethod
-    async def on_disconnect():
+    async def on_disconnect(self):  # Removed @staticmethod
         root_logger.warning("Connection lost")
 
     async def on_error(self, event: str, *args, **kwargs):
@@ -114,19 +114,42 @@ class Bot(commands.Bot):
             if log_channel is not None:
                 await log_channel.send(embed=embed)
 
+    async def setup_hook(self):
+        """Setup hook to initialize database and load extensions - new in discord.py 2.x"""
+        # Initialize database first
+        root_logger.info("Initializing database...")
+        self.main_db = await DatabaseHandler.create_instance()
+        root_logger.info("Database initialized successfully!")
+        
+        # Then load extensions
+        root_logger.info("Loading extensions:")
+        for extension in startup_extensions:
+            cog_path = f"cogs.{extension}"
+            try:
+                await self.load_extension(cog_path)  # Now requires await
+                root_logger.info(f"\t{cog_path}")
+            except Exception as e:
+                exc = f"{type(e).__name__}: {e}"
+                root_logger.error(f"{exc} Failed to load extension {cog_path}")
+                traceback_msg = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                root_logger.warning(traceback_msg)
+
+    async def close(self):
+        if self.main_db is not None and self.main_db.connection is not None:
+            try:
+                await self.main_db.connection.commit()
+                await self.main_db.connection.close()
+                root_logger.info("Database closed.")
+            finally:
+                self.main_db.connection = None
+        await super().close()
+
+
+async def main():
+    bot = Bot()
+    async with bot:
+        await bot.start(bot.config["token"])
+
 
 if __name__ == "__main__":
-    bot = Bot()
-    root_logger.info("Loaded extensions:")
-    for extension in startup_extensions:
-        cog_path = f"cogs.{extension}"
-        try:
-            bot.load_extension(cog_path)
-            root_logger.info(f"\t{cog_path}")
-        except Exception as e:
-            exc = f"{type(e).__name__}: {e}"
-            root_logger.error(f"{exc} Failed to load extension {cog_path}")
-            traceback_msg = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
-            root_logger.warning(traceback_msg)
-
-    bot.run(bot.config["token"])
+    asyncio.run(main())

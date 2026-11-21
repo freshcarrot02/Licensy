@@ -16,7 +16,7 @@ UPDATE_CHANNEL_ID = 625404542535598090
 
 
 class BotOwnerCommands(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command(hidden=True)
@@ -25,7 +25,7 @@ class BotOwnerCommands(commands.Cog):
         """Loads an extension.
         :param extension_path: full path, dotted access.
         """
-        self.bot.load_extension(extension_path)
+        await self.bot.load_extension(extension_path)
         await ctx.send(embed=success(f"{extension_path} loaded.", ctx.me))
 
     @commands.command(hidden=True)
@@ -34,7 +34,7 @@ class BotOwnerCommands(commands.Cog):
         """Unloads an extension.
         :param extension_path: full path, dotted access
         """
-        self.bot.unload_extension(extension_path)
+        await self.bot.unload_extension(extension_path)
         await ctx.send(embed=success(f"{extension_path} unloaded.", ctx.me))
 
     @commands.command(hidden=True)
@@ -43,10 +43,7 @@ class BotOwnerCommands(commands.Cog):
         """Closes database connection and disconnects the bot.
         Used for gracefully shutting it down in need of update.
         """
-        await self.bot.main_db.connection.commit()
-        await self.bot.main_db.connection.close()
-        logger.info("Database closed.")
-        await self.bot.logout()
+        await self.bot.close()
         logger.info("Disconnected.")
 
     @commands.command(hidden=True)
@@ -175,8 +172,7 @@ class BotOwnerCommands(commands.Cog):
                 f"Role count: **{len(guild.roles)}**\n"
                 f"Verification level: **{guild.verification_level}**\n"
                 f"Premium tier: **{guild.premium_tier}**\n"
-                f"System channel: **{guild.system_channel.id}**\n"
-                f"Region: **{guild.region}**\n"
+                f"System channel: **{guild.system_channel.id if guild.system_channel else None}**\n"
                 f"Unavailable: **{guild.unavailable}**\n"
                 f"Created date: **{guild.created_at}**\n"
                 f"Features: **{guild.features}**"
@@ -220,5 +216,5 @@ class BotOwnerCommands(commands.Cog):
         await ctx.send(embed=success("Done", ctx.me))
 
 
-def setup(bot):
-    bot.add_cog(BotOwnerCommands(bot))
+async def setup(bot):
+    await bot.add_cog(BotOwnerCommands(bot))

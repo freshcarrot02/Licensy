@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import discord
@@ -14,7 +15,14 @@ logger = logging.getLogger(__name__)
 class Guild(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot.loop.create_task(self.startup_guild_database_check())
+        self._startup_task = None
+
+    async def cog_load(self):
+        self._startup_task = asyncio.create_task(self.startup_guild_database_check())
+
+    async def cog_unload(self):
+        if self._startup_task is not None and not self._startup_task.done():
+            self._startup_task.cancel()
 
     async def startup_guild_database_check(self):
         db_guilds_ids = await self.bot.main_db.get_all_guild_ids()
@@ -142,5 +150,5 @@ class Guild(commands.Cog):
         await ctx.send(embed=success(msg, ctx.me))
 
 
-def setup(bot):
-    bot.add_cog(Guild(bot))
+async def setup(bot):
+    await bot.add_cog(Guild(bot))

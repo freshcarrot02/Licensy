@@ -27,7 +27,7 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
 
     def get_ending_note(self):
         command_name = self.invoked_with
-        return "Type {0}{1} <command> for more info on a command.\n".format(self.clean_prefix, command_name)
+        return "Type {0}{1} <command> for more info on a command.\n".format(self.context.clean_prefix, command_name)
 
     def get_opening_note(self):
         prefix = "If you like the bot please consider donating or starring the Github repository, ty :)"
@@ -73,7 +73,7 @@ class Help(commands.Cog):
         self.github_permissions_link = "https://github.com/albertopoljak/Licensy#permissions-needed"
         self.github_bot_quick_start = "https://github.com/albertopoljak/Licensy#quickstart-bot-usage"
 
-    def cog_unload(self):
+    async def cog_unload(self):
         """Revert to default help command in case cog is unloaded."""
         self.bot.help_command = self._original_help_command
 
@@ -94,5 +94,5 @@ class Help(commands.Cog):
         await ctx.send(embed=info(description, ctx.me, title="Quickstart :)"))
 
 
-def setup(bot):
-    bot.add_cog(Help(bot))
+async def setup(bot):
+    await bot.add_cog(Help(bot))

@@ -20,7 +20,7 @@ class CmdErrors(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         # If command has local error handler, return
-        if hasattr(ctx.command, "on_error"):
+        if ctx.command is not None and ctx.command.has_error_handler():
             return
 
         # Get the original exception
@@ -40,7 +40,7 @@ class CmdErrors(commands.Cog):
             It will not work for example if in code role.edit is called but bot doesn't have manage role permission.
             In that case a simple "Forbidden" will be raised.
             """
-            missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
+            missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
             if len(missing) > 2:
                 fmt = "{}, and {}".format("**, **".join(missing[:-1]), missing[-1])
             else:
@@ -67,7 +67,7 @@ class CmdErrors(commands.Cog):
             """
             # Developers can bypass guild permissions
             if not await self.developer_bypass(ctx):
-                missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_perms]
+                missing = [perm.replace("_", " ").replace("guild", "server").title() for perm in error.missing_permissions]
                 if len(missing) > 2:
                     fmt = "{}, and {}".format("**, **".join(missing[:-1]), missing[-1])
                 else:
@@ -142,7 +142,7 @@ class CmdErrors(commands.Cog):
 
     async def log_traceback(self, ctx, error):
         error_type = type(error)
-        traceback_message = traceback.format_exception(etype=error_type, value=error, tb=error.__traceback__)
+        traceback_message = "".join(traceback.format_exception(error_type, error, error.__traceback__))
         log_message = f"Ignoring {error_type} exception in command '{ctx.command}':{error}\n{traceback_message}"
         await self.bot.send_to_log_channel(log_message, title="Command error!", ctx=ctx)
 
@@ -166,5 +166,5 @@ class CmdErrors(commands.Cog):
             return False
 
 
-def setup(bot):
-    bot.add_cog(CmdErrors(bot))
+async def setup(bot):
+    await bot.add_cog(CmdErrors(bot))

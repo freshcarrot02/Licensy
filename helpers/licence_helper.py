@@ -33,7 +33,7 @@ def get_remaining_time(expiration_date: str) -> str:
 
     """
     # Convert string to datetime
-    expiration_datetime = datetime.strptime(expiration_date, "%Y-%m-%d %H:%M:%S.%f")
+    expiration_datetime = datetime.fromisoformat(expiration_date)
     # timedelta object
     difference = expiration_datetime - get_current_time()
     # difference has ms in it so we remove it here for nicer display

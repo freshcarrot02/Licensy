@@ -3,7 +3,8 @@
 </p>
 
 [![Licensy archived](https://img.shields.io/badge/Licensy-archived-red)](#)
-[![Python 3.6](https://img.shields.io/badge/python-3.6%2B-blue)](#)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](#)
+[![discord.py 2.7.1+](https://img.shields.io/badge/discord.py-2.7.1%2B-blue)](#)
 [![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
 
 This bot is archived, there will be no more updates.
@@ -117,7 +118,7 @@ This happens for example if you redeem license for a role you **already** have.
 
 ## Requirements for source
 
-You need Python 3.6 and packages from `requirements.txt`
+You need Python 3.9+ and packages from `requirements.txt` (targets `discord.py >= 2.7.1`).
 
 In Ubuntu, Mint and Debian you can install Python 3 like this:
 
@@ -134,7 +135,9 @@ $ cd Licensy
 $ pip install -r requirements.txt
 ```
 
-Before running the bot edit the `config.json` found in the root directory.
+Before running the bot:
+1. Enable **Server Members Intent** and **Message Content Intent** under **Privileged Gateway Intents** for your bot in the [Discord Developer Portal](https://discord.com/developers/applications).
+2. Edit `config.json` found in the root directory.
 Adding the bot token is the most important thing.
 If you don't know what top.gg is or don't need it you can leave top_gg_api_key as it is (empty).
 
