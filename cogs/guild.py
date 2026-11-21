@@ -7,6 +7,7 @@ from aiosqlite import IntegrityError
 
 from helpers.converters import license_duration
 from helpers.embed_handler import success, failure
+from helpers.misc import guild_cooldown_bypass_admin
 
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class Guild(commands.Cog):
         logger.info("Database guild checkup done!")
 
     @commands.command()
-    @commands.cooldown(1, 30, commands.BucketType.guild)
+    @guild_cooldown_bypass_admin(1, 30)
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def prefix(self, ctx, *, prefix):

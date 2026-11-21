@@ -386,7 +386,7 @@ class LicenseHandler(commands.Cog):
             await ctx.send(embed=failure("The license key you entered is invalid/deactivated."))
 
     @commands.command()
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @misc.guild_cooldown_bypass_admin(1, 10)
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def generate(self, ctx, num: positive_integer = 3, license_role: discord.Role = None,
@@ -482,7 +482,7 @@ class LicenseHandler(commands.Cog):
         await ctx.author.send(f"```{misc.maximize_size(dm_msg)}```")
 
     @commands.command(aliases=["licences"])
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @misc.guild_cooldown_bypass_admin(1, 10)
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def licenses(self, ctx, license_role: discord.Role = None):
@@ -529,7 +529,7 @@ class LicenseHandler(commands.Cog):
         await Paginator.paginate(self.bot, ctx.author, ctx.author, table.draw(), title=dm_title)
 
     @commands.command(aliases=["random_licenses"])
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @misc.guild_cooldown_bypass_admin(1, 10)
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
     async def random_license(self, ctx, number: int = 10):

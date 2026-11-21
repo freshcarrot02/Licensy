@@ -9,7 +9,13 @@ from discord.ext import commands, tasks
 
 from helpers.licence_helper import get_current_time
 from helpers.embed_handler import info, success, failure
-from helpers.misc import construct_load_bar_string, construct_embed, time_ago, embed_space
+from helpers.misc import (
+    construct_load_bar_string,
+    construct_embed,
+    time_ago,
+    embed_space,
+    guild_cooldown_bypass_admin,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -139,7 +145,7 @@ class BotInformation(commands.Cog):
         await ctx.send(embed=info(self.github_source, ctx.me, title="Source code"))
 
     @commands.command(aliases=["stats", "status", "server"])
-    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @guild_cooldown_bypass_admin(1, 10)
     async def about(self, ctx):
         """Show bot information (stats/links/etc)."""
         avg_members = round(len(self.bot.users) / len(self.bot.guilds)) if self.bot.guilds else 0

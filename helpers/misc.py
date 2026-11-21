@@ -4,6 +4,7 @@ from pathlib import Path
 
 import timeago as timesince
 from discord import Embed, Colour
+from discord.ext import commands
 
 
 logger = logging.getLogger(__name__)
@@ -125,3 +126,26 @@ def tail(n=1):
 # visually the same command string! So in short in help command don't do this format:
 # prefix + command_name as copy pasting will not work, however just command_name name is fine.
 embed_space = "\u200b "
+
+
+def has_admin_access(ctx: commands.Context) -> bool:
+    """Returns True if the command author has administrator permission in the guild."""
+    if ctx.guild is None:
+        return False
+    perms = getattr(ctx.author, "guild_permissions", None)
+    return bool(perms and perms.administrator)
+
+
+def guild_cooldown_bypass_admin(rate: int, per: float):
+    """Guild-scoped dynamic cooldown that bypasses cooldowns for guild administrators."""
+    def cooldown_factory(ctx: commands.Context):
+        if has_admin_access(ctx):
+            return None
+        return commands.Cooldown(rate, per)
+
+    def bucket_key(ctx: commands.Context):
+        if has_admin_access(ctx):
+            return ("admin",)
+        return commands.BucketType.guild(ctx)
+
+    return commands.dynamic_cooldown(cooldown_factory, bucket_key)
