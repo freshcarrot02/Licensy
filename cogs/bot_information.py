@@ -22,7 +22,7 @@ class BotInformation(commands.Cog):
         self._developers_task = None
         self.process = psutil.Process(os.getpid())
         self.activity = 0
-        self.github_source = "https://github.com/albertopoljak/Licensy"
+        self.github_source = "https://github.com/freshcarrot02/Licensy"
         self.top_gg_vote_link = "https://discordbots.org/bot/604057722878689324"
 
     async def cog_load(self):

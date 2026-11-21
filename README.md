@@ -1,17 +1,13 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/albertopoljak/Licensy/master/logo.png">
+    <img src="https://raw.githubusercontent.com/freshcarrot02/Licensy/master/logo.png">
 </p>
 
-[![Licensy archived](https://img.shields.io/badge/Licensy-archived-red)](#)
+[![Licensy maintained fork](https://img.shields.io/badge/Licensy-maintained%20fork-brightgreen)](#)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](#)
 [![discord.py 2.7.1+](https://img.shields.io/badge/discord.py-2.7.1%2B-blue)](#)
-[![License AGPL3](https://img.shields.io/github/license/albertopoljak/Licensy?color=red)](LICENSE.md)
+[![License AGPL3](https://img.shields.io/github/license/freshcarrot02/Licensy?color=red)](LICENSE.md)
 
-This bot is archived, there will be no more updates.
-
-I am also no longer hosting the bot, you can find someone else to host it, or you can host it yourself.
-
-I will still be active in the support server but please ask bot related questions (no questions like 'how to setup vps' you can Google those)
+> **Maintained Fork Notice:** This repository ([freshcarrot02/Licensy](https://github.com/freshcarrot02/Licensy)) is a fork of the archived [albertopoljak/Licensy](https://github.com/albertopoljak/Licensy) repository. `@freshcarrot02` will maintain and patch this project going forward (including keeping compatibility with the latest `discord.py`, currently `2.7.1+`, and ongoing fixes).
 
 # Licensy - easily manage expiration of roles with subscriptions!
 
@@ -131,15 +127,23 @@ For other Linux flavors, macOS and Windows, packages are available at
 ## Quickstart source code
 
 ```bash
+$ git clone https://github.com/freshcarrot02/Licensy.git
 $ cd Licensy
 $ pip install -r requirements.txt
+```
+
+Or using `uv`:
+
+```bash
+$ uv sync
+$ uv run bot.py
 ```
 
 Before running the bot:
 1. Enable **Server Members Intent** and **Message Content Intent** under **Privileged Gateway Intents** for your bot in the [Discord Developer Portal](https://discord.com/developers/applications).
 2. Edit `config.json` found in the root directory.
 Adding the bot token is the most important thing.
-If you don't know what top.gg is or don't need it you can leave top_gg_api_key as it is (empty).
+If you don't know what top.gg is or don't need it you can leave `top_gg_api_key` as it is (empty).
 
 After that you are ready to run it:
 
@@ -158,6 +162,7 @@ Further steps on how to use the bot are in [Quickstart bot usage](#quickstart-bo
 
 * **[Joseph Kim](https://github.com/KimchiTastesGood)** - *Original bot and idea*
 * **[Braindead](https://github.com/albertopoljak)** - *New bot redesign based on original idea*
+* **[freshcarrot02](https://github.com/freshcarrot02)** - *Maintained fork & ongoing patches (discord.py 2.x+)*
 
 ## License
 

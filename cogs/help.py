@@ -69,9 +69,10 @@ class Help(commands.Cog):
         self._original_help_command = bot.help_command
         bot.help_command = PrettyHelpCommand()
         bot.help_command.cog = self
+        # Keep upstream wiki FAQ link until a wiki is populated on the fork.
         self.github_faq = "https://github.com/albertopoljak/Licensy/wiki/FAQ"
-        self.github_permissions_link = "https://github.com/albertopoljak/Licensy#permissions-needed"
-        self.github_bot_quick_start = "https://github.com/albertopoljak/Licensy#quickstart-bot-usage"
+        self.github_permissions_link = "https://github.com/freshcarrot02/Licensy#permissions-needed"
+        self.github_bot_quick_start = "https://github.com/freshcarrot02/Licensy#quickstart-bot-usage"
 
     async def cog_unload(self):
         """Revert to default help command in case cog is unloaded."""
